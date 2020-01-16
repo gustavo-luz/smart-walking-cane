@@ -1,0 +1,119 @@
+
+//#define CAYENNE_DEBUG         // Uncomment to show debug messages
+//#define CAYENNE_PRINT Serial  // Comment this out to disable prints and save space
+#include <CayenneESP8266Shield.h>
+#include <Ultrasonic.h>
+#include "DHT.h"
+
+
+// Cayenne authentication token. This should be obtained from the Cayenne Dashboard.
+char token[] = "XXXXX";
+char ssid[] = "XXXXXX";
+char password[] = "XXXXXX";
+
+// Set ESP8266 Serial object
+#define EspSerial Serial
+#define pino_trigger 2
+#define pino_echo 3
+
+#define DHTPIN A0 // pino que estamos conectado
+#define DHTTYPE DHT11 // DHT 11
+
+ESP8266 wifi(EspSerial);
+
+#define VIRTUAL_PIN0 V0
+#define VIRTUAL_PIN1 V1
+#define VIRTUAL_PIN2 V2
+#define VIRTUAL_PIN3 V3
+
+Ultrasonic ultrasonic(pino_trigger, pino_echo);
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup()
+{
+  EspSerial.begin(115200);
+  delay(10);
+  Cayenne.begin(token, wifi, ssid, password);
+  dht.begin();
+}
+
+void loop()
+{
+  Cayenne.run();
+}
+
+CAYENNE_OUT(VIRTUAL_PIN0)
+{
+  float cmMsec;
+  long microsec = ultrasonic.timing();
+  cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
+  Cayenne.virtualWrite(V0, cmMsec);
+}
+
+CAYENNE_OUT(VIRTUAL_PIN1)
+{
+  float inMsec;
+  long microsec = ultrasonic.timing();
+  inMsec = ultrasonic.convert(microsec, Ultrasonic::IN);
+  Cayenne.virtualWrite(V1, inMsec);
+}
+CAYENNE_OUT(VIRTUAL_PIN2)
+{
+  float t = dht.readTemperature();
+  Cayenne.virtualWrite(V2, t); //virtual pin
+}
+
+CAYENNE_OUT(VIRTUAL_PIN3)
+{
+  float h = dht.readHumidity();
+  Cayenne.virtualWrite(V3, h); //virtual pin
+}
+
+
+
+#define pino_Buzzer = D5;
+
+
+#include <Arduino.h>
+#include <Ultrasonic.h>
+
+//Define os pinos para o trigger e echo
+#define pino_trigger D2
+#define pino_echo D1
+#define pino_buzzer D5
+ 
+//Inicializa o sensor nos pinos definidos acima
+Ultrasonic ultrasonic(pino_trigger, pino_echo);
+ 
+void setup()
+{
+  Serial.begin(9600);
+  while(!Serial);
+  //Trigger como OUTPUT
+  pinMode(D2, OUTPUT);
+  //Echo como OUTPUT
+  pinMode(D1, INPUT);
+  //Buzzer como OUTPUT
+  pinMode(D5, OUTPUT);
+  Serial.println("Lendo dados do sensor...");
+}
+ 
+void loop()
+{
+  //Le as informacoes do sensor, em cm 
+  long cmMsec = ultrasonic.read(CM);
+  
+  //Exibe informacoes no serial monitor
+  Serial.print("Distancia em cm: ");
+  Serial.println(cmMsec);
+  delay(10);
+
+  if(ultrasonic.read(CM) <= 9){// SE A DISTÂNCIA ENTRE O OBJETO E O SENSOR ULTRASONICO FOR MENOR QUE 30CM, FAZ
+tone(pino_buzzer,500);//ACIONA O BUZZER
+}else{
+noTone(pino_buzzer);//BUZZER PERMANECE DESLIGADO
+}
+}
+
+
+
