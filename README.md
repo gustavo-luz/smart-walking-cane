@@ -1,6 +1,8 @@
 # smart-walking-cane
 Smart cane for blinds with TRL 3. Made with arduino nano, 3 ultrasonic sensors and buzzer
 
+![alt text](finalprototype.jpg)
+
 ## Steps
 
 ## Step 1 - Hardware Part
